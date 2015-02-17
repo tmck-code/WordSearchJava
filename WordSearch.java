@@ -1,40 +1,54 @@
-/*
+/**
  * Class Name:    WordSearch
- *
- * @author Thomas McKeesick
- * Creation Date:     Wednesday, January 21 2015, 01:57
- * Last Modified:     Thursday, February 12 2015, 12:51
- *
- * @version 0.1.1
  * Class Description: A java program that will solve a
- *     word search puzzle given in the form of a grid
+ *     word search puzzle given in the form of a grid.
+ *  
+ *     NOTE: This is still a work in progress
+ *
+ * @author            Thomas McKeesick
+ * Creation Date:     Wednesday, January 21 2015, 01:57
+ * Last Modified:     Tuesday, February 17 2015, 17:20
+ *
+ * @version 0.2.1     See CHANGELOG
  */
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.io.FileReader;
 import java.io.BufferedReader;
+
 import java.io.IOException;
 
-public class WordSearch{
-    public static void main (String[] args) {
-        if( args.length != 2 ) {
+public class WordSearch {
+    public static void main(String[] args) {
+        if( args.length < 2 ) {
             System.err.println("Must input a dictionary AND puzzle" +
                     "file to read");
             System.err.println("Usage: java WordSearch <dictionary> <puzzle>");
             System.exit(1);
         }
+        int numLetters;
+        if( args.length == 3 ) {
+            numLetters = Integer.parseInt(args[2]);
+        } else {
+            numLetters = -1;
+        }
 
         RBTree<String> dict = loadDict(args[0]);
         char[][] grid = loadPuzzle(args[1]);
-        ArrayList<String> results = findStrings(grid);
-        ArrayList<String> solutions = findWords(results, dict);
+        ArrayList<String[]> results = findStrings(grid);
+        ArrayList<String[]> solutions = findWords(results, dict, numLetters);
 
         printGrid(grid);
 
-        System.out.println("\nTotal results generated: " + results.size());
-        //System.out.println(results);
-        System.out.println("\nTotal solutions found: " + solutions.size());
-        System.out.println(solutions);
+        if( args.length == 3 ) {
+            System.out.println("Searching for words with " + args[2] 
+                    + " or more letters");    
+        }
+        //System.out.println("Total possible strings generated: " + results.size());
+        System.out.println("Total solutions found: " + solutions.size() + "\n");
+        printSolutions(solutions);
     
         System.exit(0);
     }
@@ -102,45 +116,39 @@ public class WordSearch{
      * @param grid The word puzzle to search
      * @return The ArrayList of strings found by the method
      */
-    private static ArrayList<String> findStrings( char[][] grid ) {
-
+    private static ArrayList<String[]> findStrings(char[][] grid) {
         int cols = grid[0].length;
         int rows = grid.length;
-        ArrayList<String> results = new ArrayList<String>();
+        ArrayList<String[]> results = new ArrayList<String[]>();
         
         for( int i = 0; i < rows; i++ ) {
 
             for( int j = 0; j < cols; j++ ) {
-                //Move North and South
                 if(i - 1 > 0) {
-                    ArrayList<String> line = moveN(grid, i, j);
-                    for( String s : line ) {
-                        results.add(s);
+                    ArrayList<String[]> line = moveN(grid, i, j);
+                    for( String[] array : line ) {
+                        results.add(array);
                     }
                 }
-                //Move East and West
                 if(j - 1 > 0) {
-                    ArrayList<String> line = moveW(grid, i, j);
-                    for( String s: line ) {
-                        results.add(s);
+                    ArrayList<String[]> line = moveW(grid, i, j);
+                    for( String[] array: line ) {
+                        results.add(array);
                     }
                 }
-                //Move NW and SE
                 if( j - 1 > 0 && i - 1 > 0) {
-                    ArrayList<String> line = moveNW(grid, i, j);
-                    for( String s : line ) {
-                        results.add(s);
+                    ArrayList<String[]> line = moveNW(grid, i, j);
+                    for( String[] array : line ) {
+                        results.add(array);
                     }
                 }
-                //Move NE and SW
                 if( i - 1 > 0 && j + 1 < cols) {
-                    ArrayList<String> line = moveNE(grid, i, j, rows, cols);
-                    for( String s : line ) {
-                        results.add(s);
+                    ArrayList<String[]> line = moveNE(grid, i, j, rows, cols);
+                    for( String[] array : line ) {
+                        results.add(array);
                     }
                 }
             }
-            results.add("\n");
         }
         return results;
     }
@@ -152,23 +160,22 @@ public class WordSearch{
      * @param dict The Red-Black tree containing the dictionary file
      * @return The ArrayList of all dictionary words found.
      */
-    private static ArrayList<String> findWords( ArrayList<String> results, 
-            RBTree<String> dict ) {
+    private static ArrayList<String[]> findWords(ArrayList<String[]> results, 
+            RBTree<String> dict, int numLetters) {
 
-        ArrayList<String> words = new ArrayList<String>();
-        for( String s : results ) {
-            if( dict.contains(s) != null ) {
-                words.add(s);
-            } else if( s == "\n" ) {
-                words.add("\n");
+        ArrayList<String[]> words = new ArrayList<String[]>();
+        for( String[] array : results ) {
+            if( dict.contains(array[0]) != null 
+                    && array[0].length() > numLetters ) {
+                words.add(array);
             }
         }
         return words;
     }
 
-    /*---------------------------------\
-     *         MOVE METHODS             |
-     **********************************/
+    /*-----------------------------------------------------------------------\.
+     *        MOVE METHODS                                                    |
+     *********^^^^^^^^^^^^***************************************************/
 
     /**
      * Private method that returns all North and reverse-North (South) strings
@@ -179,36 +186,34 @@ public class WordSearch{
      * @return The ArrayList of the north and south strings above the point
      * supplied
      */
-    private static ArrayList<String> moveN( char[][] grid, int row, int col ) {
-        ArrayList<String> results = new ArrayList<String>();
+    private static ArrayList<String[]> moveN(char[][] grid, int row, int col) {
+        ArrayList<String[]> results = new ArrayList<String[]>();
         StringBuilder word = new StringBuilder();
         for( int i = row; i >= 0; i-- ) {
             word.append(grid[i][col]);
             if(word.length() > 2) {
-                results.add(word.toString());
-                results.add(word.reverse().toString());
+                results.add(formatString(word.toString(), row, col, i, col));
+                word.reverse();
+                results.add(formatString(word.toString(), i, col, row, col));
                 word.reverse();
             }
         }
         return results;
     }
+  
     /**
      * Private method that returns all West and reverse-West (East) strings
      * found for the supplied position in the word puzzle
-     * @param grid The word puzzle to use
-     * @param row The row number of the letter
-     * @param col The column number of the letter
-     * @return The ArrayList of the west and east strings above the point
-     * supplied
      */
-    private static ArrayList<String> moveW( char[][] grid, int row, int col ) {
-        ArrayList<String> results = new ArrayList<String>();
+    private static ArrayList<String[]> moveW( char[][] grid, int row, int col ) {
+        ArrayList<String[]> results = new ArrayList<String[]>();
         StringBuilder word = new StringBuilder();
         for( int j = col; j >= 0; j-- ) {
             word.append(grid[row][j]);
             if(word.length() > 2) {
-                results.add(word.toString());
-                results.add(word.reverse().toString());
+                results.add(formatString(word.toString(), row, col, row, j));
+                word.reverse();
+                results.add(formatString(word.toString(), row, j, row, col));
                 word.reverse();
             }
         }
@@ -217,23 +222,18 @@ public class WordSearch{
 
     /**
      * Private method that returns all North-West and reverse-North-West 
-     * (South-East) strings
-     * found for the supplied position in the word puzzle
-     * @param grid The word puzzle to use
-     * @param row The row number of the letter
-     * @param col The column number of the letter
-     * @return The ArrayList of the North-West and South-East strings above the point
-     * supplied
+     * (South-East) strings found for the supplied position in the word puzzle
      */
-    private static ArrayList<String> moveNW( char[][] grid, int row, int col) {
-        ArrayList<String> results = new ArrayList<String>();
+    private static ArrayList<String[]> moveNW( char[][] grid, int row, int col) {
+        ArrayList<String[]> results = new ArrayList<String[]>();
         StringBuilder word = new StringBuilder();
 
         for( int i = row, j = col; i >= 0 && j >= 0; i--, j-- ) {
                 word.append(grid[i][j]);
                 if(word.length() > 2) {
-                    results.add(word.toString());
-                    results.add(word.reverse().toString());
+                    results.add(formatString(word.toString(), row, col, i, j));
+                    word.reverse();
+                    results.add(formatString(word.toString(), i, j, row, col));
                     word.reverse();
                 }
         }
@@ -241,32 +241,48 @@ public class WordSearch{
     }
 
     /**
-     * Private method that returns all North-East and reverse-North-East (South-West) strings
-     * found for the supplied position in the word puzzle
-     * @param grid The word puzzle to use
-     * @param row The row number of the letter
-     * @param col The column number of the letter
-     * @return The ArrayList of the North-East and South-West strings above the point
-     * supplied
+     * Private method that returns all North-East and reverse-North-East 
+     * (South-West) strings found for the supplied position in the word puzzle
      */
-    private static ArrayList<String> moveNE( char[][] grid, int row, int col, 
-            int numRows, int numCols) {
-
-        ArrayList<String> results = new ArrayList<String>();
+    private static ArrayList<String[]> moveNE(char[][] grid, int row, int col, int numRows, int numCols) {
+        ArrayList<String[]> results = new ArrayList<String[]>();
         StringBuilder word = new StringBuilder();
         for( int i = row, j = col; i >= 0 && j < numCols; i--, j++) {
             word.append(grid[i][j]);
             if(word.length() > 2) {
-                results.add(word.toString());
-                results.add(word.reverse().toString());
+                results.add(formatString(word.toString(), row, col, i, j));
+                word.reverse();
+                results.add(formatString(word.toString(), i, j, row, col));
                 word.reverse();
             }
         }
         return results;
     }
 
-    public static void printGrid(char[][] grid) {
-        
+    /*-----------------------------------------------------------------------\.
+     *        FORMAT AND PRINT METHODS                                        |
+     ************************************************************************/
+
+    private static String[] formatString(String str, int rowFrom, int colFrom,
+            int rowTo, int colTo) {
+
+            String[] tmp = new String[2];
+            
+            tmp[0] = str;           
+            tmp[1] = "[" + (char) (colFrom + 'A') + ", " +
+                    String.format("%-2s", (rowFrom+1)) + "] -> [" + 
+                    (char)(colTo+'A') + ", " + 
+                    String.format("%-2s", (rowTo+1)) + "]";
+            return tmp;
+    }
+
+    /**
+     * Prints the word search grid in human-readable form with coordinates.
+     * All characters in the grid are upper case, rows numbers are alphabetic
+     * and colums are integers 
+     * @param grid The word search grid to print
+     */
+    public static void printGrid(char[][] grid) {     
         System.out.print("    ");
         for( int i = 0; i < grid.length; i++ ) {
             System.out.print((char) ('A' + i) + " ");
@@ -288,6 +304,26 @@ public class WordSearch{
             System.out.println();
             rowNum++;
         }
-
+        System.out.println();
     }
+
+    /**
+     * Sorts the solutions into alphabetical order, then prints them to the
+     * user
+     * @param words The ArrayList of solutions to print 
+     */
+    public static void printSolutions(ArrayList<String[]> words) {
+
+        Collections.sort(words, new Comparator<String[]>() {
+            @Override
+            public int compare(String[] word1, String[] word2) {
+                return word1[0].compareTo(word2[0]);
+            }
+        });
+
+        for(String[] array: words) {
+            System.out.println(array[1] + ": " + array[0].toUpperCase());
+        }
+    }
+
 }
