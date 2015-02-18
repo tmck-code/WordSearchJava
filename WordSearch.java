@@ -73,15 +73,11 @@ public class WordSearch {
 
         RBTree<String> dict = loadDict(args[0]);
         char[][] grid = loadPuzzle(args[1]);
-        ArrayList<WordInfo> solutions = findWords(grid, dict);
-
         printGrid(grid);
 
-        if( args.length == 3 ) {
-            System.out.println("Searching for words with " + args[2] + 
-                               " or more letters");    
-        }
-
+        System.out.println("Searching for words with " + numLetters + 
+                           " or more letters: ");
+        ArrayList<WordInfo> solutions = findWords(grid, dict);
         printSolutions(solutions);
     
         Runtime runtime = Runtime.getRuntime();
@@ -170,29 +166,16 @@ public class WordSearch {
         for( int i = 0; i < rows; i++ ) {
             for( int j = 0; j < cols; j++ ) {
                 if(i - (numLetters-1) >= 0) {
-                    ArrayList<WordInfo> words = moveN(grid, dict, i, j);
-                    for( WordInfo array : words ) {
-                        results.add(array);
-                    }
+                    results.addAll(moveN(grid, dict, i, j));
                 }
                 if(j - (numLetters-1) >= 0) {
-                    ArrayList<WordInfo> words = moveW(grid, dict, i, j);
-                    for( WordInfo array: words ) {
-                        results.add(array);
-                    }
+                    results.addAll(moveW(grid, dict, i, j));
                 }
                 if( j - (numLetters-1) >= 0 && i - (numLetters-1) > 0) {
-                    ArrayList<WordInfo> words = moveNW(grid, dict, i, j);
-                    for( WordInfo array : words ) {
-                        results.add(array);
-                    }
+                    results.addAll(moveNW(grid, dict, i, j));
                 }
                 if( i - (numLetters-1) >= 0 && j + (numLetters-1) < cols) {
-                    ArrayList<WordInfo> words = moveNE(grid, dict, i, j, rows,
-                                                       cols);
-                    for( WordInfo array : words ) {
-                        results.add(array);
-                    }
+                    results.addAll(moveNE(grid, dict, i, j, rows, cols));
                 }
             }
         }
