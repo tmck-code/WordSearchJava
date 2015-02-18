@@ -3,7 +3,7 @@
  *
  * @author            Thomas McKeesick
  * Creation Date:     Wednesday, January 21 2015, 01:57
- * Last Modified:     Thursday, February 19 2015, 09:54
+ * Last Modified:     Thursday, February 19 2015, 10:02
  *
  * @version 0.2.3     See CHANGELOG
  * Class Description: A java program that will solve a
@@ -155,7 +155,8 @@ public class WordSearch {
      * @return The ArrayList of strings found by the method
      */
     private static ArrayList<WordInfo> findWords(char[][] grid, 
-                                                 ArrayList<String> dict) {
+                                                 ArrayList<String> dict,
+                                                 int numLetters) {
         int cols = grid[0].length;
         int rows = grid.length;
         ArrayList<WordInfo> results = new ArrayList<WordInfo>();
