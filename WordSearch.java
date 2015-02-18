@@ -3,7 +3,7 @@
  *
  * @author            Thomas McKeesick
  * Creation Date:     Wednesday, January 21 2015, 01:57
- * Last Modified:     Thursday, February 19 2015, 10:02
+ * Last Modified:     Thursday, February 19 2015, 10:24
  *
  * @version 0.2.3     See CHANGELOG
  * Class Description: A java program that will solve a
@@ -54,7 +54,8 @@ public class WordSearch {
         }
     }
 
-    private static int numLetters = 3;
+    public static final int MIN_LETTERS = 4;
+    private static int numLetters = MIN_LETTERS;
 
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis();
@@ -335,8 +336,7 @@ public class WordSearch {
     }
 
     /**
-     * Sorts the solutions into alphabetical order, then prints them to the
-     * user
+     * Sorts the solutions into alphabetical order, then prints them to stdout
      * @param words The ArrayList of solutions to print 
      */
     public static void printSolutions(ArrayList<WordInfo> words, 
@@ -348,7 +348,6 @@ public class WordSearch {
                 return word1.compareTo(word2);
             }
         });
-
         System.out.println("Found " + words.size() + " words with " +
         					numLetters + " letters or more");
         for(WordInfo w: words) {
