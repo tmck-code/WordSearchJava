@@ -3,4 +3,5 @@ A Java class that solves a word search puzzle.
 This class requires the Red-Black tree implementation located at: https://github.com/tmck-code/RedBlackTree.git.
 Ensure all class files are located in the same directory before compiling and running.
 
-The develop branch now uses ArrayList instead of RBTree to reduce dependency.
+The develop branch now uses List/ArrayList instead of RBTree to reduce 
+dependency.
