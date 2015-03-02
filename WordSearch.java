@@ -3,7 +3,7 @@
  *
  * @author            Thomas McKeesick
  * Creation Date:     Wednesday, January 21 2015, 01:57
- * Last Modified:     Monday, March 02 2015, 13:09
+ * Last Modified:     Tuesday, March 03 2015, 10:46
  *
  * @version 0.2.4     See CHANGELOG
  * Class Description: A java program that will solve a
@@ -20,7 +20,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 
 public class WordSearch {
-    public static class WordInfo {
+    private static class WordInfo {
 
         private String word;
         private int rowFrom;
@@ -37,10 +37,6 @@ public class WordSearch {
         }
 
         public String getWord() { return word; }
-        public int getRowFrom() { return rowFrom; }
-        public int getRowTo() { return rowTo; }
-        public int getColFrom() { return colFrom; }
-        public int getColTo() { return colTo; }
 
         public String toString() {
             String info = "[" + (char) (colFrom + 'A') + ", " +
@@ -49,9 +45,6 @@ public class WordSearch {
                     String.format("%-2s", (rowTo+1)) + "] : " +
                     word.toUpperCase();
             return info;
-        }
-        public int compareTo(WordInfo word2) {
-            return word.compareTo(word2.word);
         }
     }
 
@@ -80,15 +73,14 @@ public class WordSearch {
         printGrid(grid);
         printSolutions(solutions, numLetters);
 
-        Runtime runtime = Runtime.getRuntime();
-        runtime.gc();
+        Runtime r = Runtime.getRuntime();
+        r.gc();
 
         long endTime = System.currentTimeMillis();
         System.out.println("Time taken: " + (endTime - startTime) +
                            " milliseconds");
         System.out.println("Memory used: " +
-                    ((runtime.totalMemory() - runtime.freeMemory()) / 1024) +
-                    " kB");
+                    ((r.totalMemory() - r.freeMemory())/1024/1024) + " MB");
         System.exit(0);
     }
 
@@ -107,7 +99,8 @@ public class WordSearch {
                 dict.add(word);
             }
         } catch( IOException e ) {
-            System.err.println("A file error occurred: " + filename );
+            System.err.println("A file error occurred: " + filename + 
+                    e.getMessage() + e.getStackTrace());
             System.exit(1);
         }
         return dict;
@@ -138,13 +131,14 @@ public class WordSearch {
                 String[] letters = line.split(" ");
                 for( String s : letters ) {
                     grid[rowNum][colNum] =
-                            Character.toLowerCase( s.charAt(0) );
+                            Character.toLowerCase(s.charAt(0));
                     colNum++;
                 }
                 rowNum++;
             }
         } catch( IOException e ) {
-            System.err.println("A file error occurred: " + filename );
+            System.err.println("A file error occurred: " + filename +
+                    e.getMessage() + e.getStackTrace());
             System.exit(1);
         }
         return grid;
@@ -156,8 +150,7 @@ public class WordSearch {
      * @param grid The word puzzle to search
      * @return The ArrayList of strings found by the method
      */
-    private static List<WordInfo> findWords(char[][] grid,
-                                                 List<String> dict,
+    private static List<WordInfo> findWords(char[][] grid, List<String> dict,
                                                  int numLetters) {
         int cols = grid[0].length;
         int rows = grid.length;
@@ -195,8 +188,7 @@ public class WordSearch {
      * @return The ArrayList of the north and south strings above the point
      * supplied
      */
-    private static List<WordInfo> moveN(char[][] grid,
-                                             List<String> dict,
+    private static List<WordInfo> moveN(char[][] grid, List<String> dict,
                                              int row, int col) {
 
         List<WordInfo> results = new ArrayList<WordInfo>();
@@ -223,8 +215,7 @@ public class WordSearch {
      * Private method that returns all West and reverse-West (East) strings
      * found for the supplied position in the word puzzle
      */
-    private static List<WordInfo> moveW(char[][] grid,
-                                             List<String> dict,
+    private static List<WordInfo> moveW(char[][] grid, List<String> dict,
                                              int row, int col ) {
 
         List<WordInfo> results = new ArrayList<WordInfo>();
@@ -252,8 +243,7 @@ public class WordSearch {
      * Private method that returns all North-West and reverse-North-West
      * (South-East) strings found for the supplied position in the word puzzle
      */
-    private static List<WordInfo> moveNW(char[][] grid,
-                                              List<String> dict,
+    private static List<WordInfo> moveNW(char[][] grid, List<String> dict,
                                               int row, int col) {
 
         List<WordInfo> results = new ArrayList<WordInfo>();
@@ -279,8 +269,7 @@ public class WordSearch {
      * Private method that returns all North-East and reverse-North-East
      * (South-West) strings found for the supplied position in the word puzzle
      */
-    private static List<WordInfo> moveNE(char[][] grid,
-                                              List<String> dict,
+    private static List<WordInfo> moveNE(char[][] grid, List<String> dict,
                                               int row, int col,
                                               int numRows, int numCols) {
 
@@ -326,11 +315,10 @@ public class WordSearch {
 
         int rowNum = 1;
         for( char[] row : grid ) {
-            System.out.printf("%02d |", rowNum);
+            System.out.printf("\n%02d |", rowNum);
             for( char c : row ) {
                 System.out.print(Character.toUpperCase(c) + " ");
             }
-            System.out.println();
             rowNum++;
         }
         System.out.println();
@@ -346,7 +334,7 @@ public class WordSearch {
         Collections.sort(words, new Comparator<WordInfo>() {
             @Override
             public int compare(WordInfo word1, WordInfo word2) {
-                return word1.compareTo(word2);
+                return word1.getWord().compareTo(word2.getWord());
             }
         });
         System.out.println("Found " + words.size() + " words with " +
